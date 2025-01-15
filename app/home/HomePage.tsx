@@ -1,4 +1,4 @@
-import { View, Text, FlatList, TouchableOpacity, TextInput, Image, Pressable } from "react-native"
+import { View, Text, FlatList, TouchableOpacity, TextInput, Image, Pressable, ActivityIndicator } from "react-native"
 import { styles } from "./HomePage.styles"
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -21,7 +21,9 @@ const ArticleUnit = ({article}: {article: Article}) => {
                 <Text style={styles.articleTitle}>{article.title}</Text>
                 {article.urlToImage ?
                     <Image 
+                        style={styles.articleImage}
                         source={{uri: article.urlToImage}}
+                        height={200}
                     /> : null}
                 <Text style={styles.articleDescription}>{article.description}</Text>
                 <View style={styles.articleInfoRow}>
@@ -38,12 +40,27 @@ const HomePage = () => {
     const [results, setResults] = useState<Article[]>([]);
 
     const [searchQuery, setSearchQuery] = useState<string>("");
-
+    const [page, setPage] = useState<number>(1);
+    const [loading, setLoading] = useState<boolean>(false);
+    
     const search = async () => {
         if (!searchQuery) return;
-        const newsResults = await fetchNews(searchQuery);
+        setPage(1);
+        setLoading(true);
+        const newsResults = await fetchNews(searchQuery, 1);
         setResults(newsResults);
-    }
+        setLoading(false);
+      };
+    
+      const loadMore = async () => {
+        if (!searchQuery) return;
+        setLoading(true);
+        const nextPage = page + 1;
+        const moreResults = await fetchNews(searchQuery, nextPage);
+        setResults((prevResults) => [...prevResults, ...moreResults]);
+        setPage(nextPage);
+        setLoading(false);
+      };
 
     return (
         <View style={styles.container}>
@@ -79,6 +96,10 @@ const HomePage = () => {
                         <ArticleUnit article={item}/>
                     );
                 }}
+                keyExtractor={(item, index) => index.toString()}
+                onEndReached={loadMore}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={loading ? <ActivityIndicator size="large" color="#0000ff" /> : null}
             /> :
             <Text>No articles were found for that query!</Text>}
         </View>

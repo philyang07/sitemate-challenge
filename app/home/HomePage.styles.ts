@@ -51,6 +51,10 @@ export const styles = StyleSheet.create({
         fontSize: 15,
         marginBottom: 8,
     },
+    articleImage: {
+        borderRadius: 12,
+        marginBottom: 10,
+    },
     articleDescription: {
         fontSize: 12,
         marginBottom: 8,
